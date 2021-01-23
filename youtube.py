@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 import lxml
 import os
+import re
 
 #IMPORT WITH STDOUT REDIRECTION
 #FIX STARTUP PYGAME HELLO MESSAGE
@@ -104,8 +105,11 @@ class Youtube(object):
         soup = BeautifulSoup(response.text,'lxml')
         self.__result = []
 
-        for link in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
-            self.__result.append(self.__host + link['href'])
+        pattern = re.compile(r'"videoId":"(.+?)"')
+        video_ids = pattern.findall(response.text)
+
+        for video_id in video_ids:
+            self.__result.append(self.__host + "/watch?v=" + video_id)
 
         self.removeInvallidLinks()
         return self.__result
@@ -183,8 +187,7 @@ class Youtube(object):
 
         print(uri)
         clip = mp.VideoFileClip(f'cache/{uri}/{uri}.mp4').subclip()
-        clip.audio.write_audiofile(f'cache/{uri}/{uri}.mp3', bitrate='3000k', progress_bar=True)
-
+        clip.audio.write_audiofile(f'cache/{uri}/{uri}.mp3', bitrate='3000k')
         #logging.info(f"Converting successful")
 
         try:
